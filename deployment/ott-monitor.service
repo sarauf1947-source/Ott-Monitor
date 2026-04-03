@@ -1,0 +1,32 @@
+[Unit]
+Description=OTT Monitor Application Stack
+Documentation=https://github.com/yourorg/ott_monitor
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=ottmonitor
+Group=ottmonitor
+WorkingDirectory=/opt/ott_monitor
+
+ExecStart=/usr/bin/docker compose \
+    -f /opt/ott_monitor/deployment/docker-compose.yml \
+    up -d --scale worker=15
+
+ExecStop=/usr/bin/docker compose \
+    -f /opt/ott_monitor/deployment/docker-compose.yml \
+    down
+
+ExecReload=/usr/bin/docker compose \
+    -f /opt/ott_monitor/deployment/docker-compose.yml \
+    restart
+
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=300
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

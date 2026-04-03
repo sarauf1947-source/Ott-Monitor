@@ -1,0 +1,40 @@
+# ── OTT Monitor — Worker Dockerfile ───────────────────────────────────────────
+# Includes ffmpeg/ffprobe for real stream analysis
+FROM python:3.11-slim
+
+LABEL description="OTT Monitor monitoring worker with ffprobe"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+
+WORKDIR /app
+
+# System dependencies including ffmpeg
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Verify ffprobe is available
+RUN ffprobe -version | head -1
+
+# Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Application source
+COPY workers/    ./workers/
+COPY db/         ./db/
+COPY utils/      ./utils/
+COPY config.py   ./config.py
+
+# Worker index injected at runtime via entrypoint script
+COPY deployment/worker_entrypoint.sh /worker_entrypoint.sh
+RUN chmod +x /worker_entrypoint.sh
+
+RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app
+USER appuser
+
+CMD ["/worker_entrypoint.sh"]
