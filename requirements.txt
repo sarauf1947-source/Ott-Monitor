@@ -1,4 +1,5 @@
-# ── OTT Monitor — Python Dependencies ─────────────────────────────────────────
+# OTT Monitor - Python Dependencies
+# Full file: original packages + v2.0 additions
 
 # Web framework
 fastapi==0.110.1
@@ -12,13 +13,13 @@ asyncpg==0.29.0
 alembic==1.13.1
 
 # Settings
-pydantic==2.6.4
+pydantic[email]==2.6.4
 pydantic-settings==2.2.1
 
 # Cache
 redis[asyncio]==5.0.3
 
-# HTTP client (for webhooks / alerting)
+# HTTP client
 httpx==0.27.0
 
 # Async file I/O
@@ -27,5 +28,10 @@ aiofiles==23.2.1
 # Utilities
 python-multipart==0.0.9
 
-# ── Testing (not installed in production images) ───────────────────────────────
-# Install with: pip install -r requirements-dev.txt
+# v2.0 additions
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+APScheduler==3.10.4
+openpyxl==3.1.2
+psutil==5.9.8
+bcrypt==4.0.1

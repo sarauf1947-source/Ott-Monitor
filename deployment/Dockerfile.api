@@ -1,43 +1,18 @@
-# ── OTT Monitor — API Dockerfile ──────────────────────────────────────────────
 FROM python:3.11-slim
-
-LABEL maintainer="ott-monitor"
 LABEL description="OTT Monitor FastAPI backend"
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
-
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app
 WORKDIR /app
-
-# System dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Copy application source
-COPY api/        ./api/
-COPY db/         ./db/
-COPY utils/      ./utils/
-COPY scripts/    ./scripts/
-COPY config.py   ./config.py
-
-# Create startup script
-RUN printf '#!/bin/sh\nset -e\necho "Starting OTT Monitor API..."\nexec uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers ${API_WORKERS:-4} --loop uvloop --http httptools\n' > /app/start.sh \
-    && chmod +x /app/start.sh
-
-# Create non-root user
+RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
+COPY api/ ./api/
+COPY db/ ./db/
+COPY utils/ ./utils/
+COPY scripts/ ./scripts/
+COPY config.py ./config.py
+RUN printf '#!/bin/sh\nset -e\nexec uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers ${API_WORKERS:-4} --loop uvloop --http httptools\n' > /app/start.sh && chmod +x /app/start.sh
 RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app
 USER appuser
-
 EXPOSE 8000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -sf http://localhost:8000/api/v1/health || exit 1
-
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 CMD curl -sf http://localhost:8000/api/v1/health || exit 1
 CMD ["/app/start.sh"]

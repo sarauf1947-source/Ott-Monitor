@@ -1,8 +1,5 @@
-"""
-OTT Monitor - Async Database Engine & Session Factory
-Uses SQLAlchemy 2.x async with asyncpg driver.
-"""
-
+# -*- coding: utf-8 -*-
+"""OTT Monitor - Async Database Engine and Session Factory"""
 import logging
 from typing import AsyncGenerator
 
@@ -16,11 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class Base(DeclarativeBase):
-    """Declarative base for all ORM models."""
     pass
 
 
-# Create async engine
 engine = create_async_engine(
     settings.DATABASE_URL,
     pool_size=settings.DB_POOL_SIZE,
@@ -30,7 +25,6 @@ engine = create_async_engine(
     echo=settings.DB_ECHO,
 )
 
-# Session factory
 AsyncSessionLocal = async_sessionmaker(
     engine,
     class_=AsyncSession,
@@ -41,7 +35,6 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """FastAPI dependency — yields a DB session per request."""
     async with AsyncSessionLocal() as session:
         try:
             yield session
@@ -54,10 +47,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def create_hypertables() -> None:
-    """
-    Convert metrics and errors tables to TimescaleDB hypertables.
-    Must be called after initial table creation. Safe to run repeatedly.
-    """
     statements = [
         "SELECT create_hypertable('metrics', 'timestamp', chunk_time_interval => INTERVAL '1 day', if_not_exists => TRUE)",
         "SELECT create_hypertable('errors', 'timestamp', chunk_time_interval => INTERVAL '1 day', if_not_exists => TRUE)",
@@ -66,13 +55,11 @@ async def create_hypertables() -> None:
         "ALTER TABLE metrics SET (timescaledb.compress, timescaledb.compress_segmentby = 'channel_id')",
         "SELECT add_compression_policy('metrics', INTERVAL '7 days', if_not_exists => TRUE)",
     ]
-
     async with AsyncSessionLocal() as session:
         for sql in statements:
             try:
                 await session.execute(text(sql))
                 await session.commit()
-                logger.info(f"TimescaleDB: executed — {sql[:60]}...")
             except Exception as e:
                 logger.warning(f"TimescaleDB step skipped (may already exist): {e}")
                 await session.rollback()
