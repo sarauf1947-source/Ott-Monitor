@@ -1,35 +1,25 @@
-"""
-OTT Monitor - Pydantic Schemas
-Request/response models for all API endpoints.
-"""
-
+# -*- coding: utf-8 -*-
+"""OTT Monitor - Pydantic Schemas"""
 from __future__ import annotations
-
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-
-from pydantic import BaseModel, Field, HttpUrl
-
+from pydantic import BaseModel, Field
 from db.models import AlertStatus, ChannelStatus, ErrorSeverity, ErrorType, StreamProtocol
 
-
-# ── Base Helpers ───────────────────────────────────────────────────────────────
 
 class OrmBase(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ── Channel Schemas ────────────────────────────────────────────────────────────
-
 class ChannelCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    stream_url: str = Field(..., description="Full HLS/DASH stream URL")
+    stream_url: str
     protocol: StreamProtocol = StreamProtocol.HLS
     group: Optional[str] = None
     description: Optional[str] = None
     is_active: bool = True
-    expected_bitrate: Optional[int] = Field(None, ge=0, description="Expected bitrate in kbps")
+    expected_bitrate: Optional[int] = Field(None, ge=0)
     expected_resolution: Optional[str] = None
 
 
@@ -67,8 +57,6 @@ class ChannelListResponse(BaseModel):
     items: List[ChannelResponse]
 
 
-# ── Metric Schemas ─────────────────────────────────────────────────────────────
-
 class MetricResponse(OrmBase):
     id: uuid.UUID
     channel_id: uuid.UUID
@@ -103,7 +91,6 @@ class MetricListResponse(BaseModel):
 
 
 class MetricSummary(BaseModel):
-    """Aggregated metric stats for a time window."""
     channel_id: uuid.UUID
     period: str
     avg_bitrate: Optional[float]
@@ -113,8 +100,6 @@ class MetricSummary(BaseModel):
     availability_pct: Optional[float]
     sample_count: int
 
-
-# ── Error Schemas ──────────────────────────────────────────────────────────────
 
 class ErrorResponse(OrmBase):
     id: uuid.UUID
@@ -134,11 +119,12 @@ class ErrorListResponse(BaseModel):
     items: List[ErrorResponse]
 
 
-# ── Alert Schemas ──────────────────────────────────────────────────────────────
-
 class AlertResponse(OrmBase):
     id: uuid.UUID
     channel_id: uuid.UUID
+    channel_name: Optional[str] = None
+    channel_group: Optional[str] = None
+    channel_status: Optional[ChannelStatus] = None
     alert_type: ErrorType
     severity: ErrorSeverity
     status: AlertStatus
@@ -148,40 +134,50 @@ class AlertResponse(OrmBase):
     acknowledged_by: Optional[str]
     resolved_at: Optional[datetime]
     notification_sent: bool
+    worker_shard: Optional[int] = None
+    worker_label: Optional[str] = None
 
 
 class AlertAcknowledge(BaseModel):
     acknowledged_by: str = Field(..., min_length=1)
 
 
+class AlertSummary(BaseModel):
+    total: int
+    open: int
+    acknowledged: int
+    resolved: int
+    critical: int
+    major: int
+    warning: int
+    info: int
+
+
 class AlertListResponse(BaseModel):
     total: int
+    limit: int
+    offset: int
+    summary: AlertSummary
     items: List[AlertResponse]
 
 
-# ── Dashboard Schemas ──────────────────────────────────────────────────────────
-
-class StatusCount(BaseModel):
-    status: ChannelStatus
-    count: int
-
-
 class DashboardSummary(BaseModel):
-    """Top-level NOC dashboard summary."""
     total_channels: int
     active_channels: int
     status_counts: Dict[str, int]
     open_alerts: int
     critical_alerts: int
+    warning_alerts: int
+    acknowledged_alerts: int
     avg_bitrate_kbps: Optional[float]
     avg_response_time_ms: Optional[float]
     availability_pct: float
     top_errors: List[Dict[str, Any]]
+    recent_alerts: List[AlertResponse]
     last_updated: datetime
 
 
 class ChannelStatusSummary(BaseModel):
-    """Per-channel status card for the NOC grid."""
     id: uuid.UUID
     name: str
     status: ChannelStatus
@@ -196,10 +192,8 @@ class ChannelStatusSummary(BaseModel):
     uptime_pct_24h: Optional[float]
 
 
-# ── Report Schemas ─────────────────────────────────────────────────────────────
-
 class ReportRequest(BaseModel):
-    channel_ids: Optional[List[uuid.UUID]] = None   # None = all channels
+    channel_ids: Optional[List[uuid.UUID]] = None
     start_time: datetime
     end_time: datetime
     format: str = Field("json", pattern="^(json|csv|pdf)$")
@@ -217,11 +211,9 @@ class ReportResponse(BaseModel):
     download_url: Optional[str] = None
 
 
-# ── Health Schemas ─────────────────────────────────────────────────────────────
-
 class HealthResponse(BaseModel):
     status: str
     database: str
     redis: str
-    version: str = "1.0.0"
+    version: str = "2.3.0"
     uptime_seconds: Optional[float] = None

@@ -3,63 +3,23 @@
 @tailwind utilities;
 
 @layer base {
-  * { box-sizing: border-box; }
-  body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    @apply bg-gray-50 text-gray-900 antialiased;
-  }
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { @apply bg-gray-100; }
-  ::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-gray-400; }
+  body { @apply bg-gray-50 text-gray-900 antialiased; }
 }
 
 @layer components {
-  .status-badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide;
-  }
-  .status-UP      { @apply bg-green-100 text-green-700; }
-  .status-DOWN    { @apply bg-red-100 text-red-700; }
-  .status-ERROR   { @apply bg-amber-100 text-amber-700; }
-  .status-WARNING { @apply bg-purple-100 text-purple-700; }
-  .status-UNKNOWN { @apply bg-gray-100 text-gray-500; }
-
-  .card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
-  }
-  .card-header {
-    @apply px-5 py-4 border-b border-gray-100 flex items-center justify-between;
-  }
-  .card-body {
-    @apply px-5 py-4;
-  }
-  .btn {
-    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors;
-  }
-  .btn-primary {
-    @apply btn bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800;
-  }
-  .btn-secondary {
-    @apply btn bg-white text-gray-700 border border-gray-200 hover:bg-gray-50;
-  }
-  .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700;
-  }
-  .input {
-    @apply w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-  }
-  .table-row-hover { @apply hover:bg-gray-50 transition-colors cursor-pointer; }
-
-  /* Pulse dot for live indicators */
-  .pulse-dot {
-    @apply w-2 h-2 rounded-full;
-    animation: pulse-live 2s infinite;
-  }
-  .pulse-dot-green { @apply pulse-dot bg-green-500; }
-  .pulse-dot-red   { @apply pulse-dot bg-red-500; }
-
-  @keyframes pulse-live {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.5; transform: scale(1.4); }
-  }
+  .card { @apply bg-white rounded-xl border border-gray-200 shadow-sm; }
+  .card-header { @apply flex items-center justify-between px-5 py-3.5 border-b border-gray-100; }
+  .card-body { @apply p-5; }
+  .btn-primary { @apply inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors; }
+  .btn-secondary { @apply inline-flex items-center gap-1.5 px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors; }
+  .btn-danger { @apply inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-60 transition-colors; }
+  .input { @apply w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white; }
+  .status-badge { @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold; }
+  .status-UP      { @apply bg-green-100 text-green-800; }
+  .status-DOWN    { @apply bg-red-100 text-red-800; }
+  .status-ERROR   { @apply bg-amber-100 text-amber-800; }
+  .status-WARNING { @apply bg-purple-100 text-purple-800; }
+  .status-UNKNOWN { @apply bg-gray-100 text-gray-600; }
+  .table-row-hover { @apply hover:bg-gray-50 cursor-pointer transition-colors; }
+  .pulse-dot-green { @apply inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse; }
 }
